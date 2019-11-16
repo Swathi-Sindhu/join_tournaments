@@ -1,38 +1,90 @@
 import json
+
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 import requests
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
+from django.urls import reverse
 
-from tournaments.forms import TournamentJoin
+from tournaments.forms import JoinTournament, UserDetails, RegisterForm
+from .models import TournamentJoin
 
 
-def tournament_list(request):
+def login_page(request):
+    form = AuthenticationForm()
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            if 'next' in request.GET:
+                return redirect(request.GET['next'])
+            return redirect('tournaments:tournament_list', message=None)
+
+    return render(request, 'tournaments/login.html', {'form': form})
+
+
+@login_required
+def logout_user(request):
+    logout(request)
+    return redirect('tournaments:tournament_list', message=None)
+
+
+def register_user(request):
+    form = RegisterForm()
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            return redirect('tournaments:login')
+
+    return render(request, 'tournaments/register.html', {'form': form})
+
+
+def tournament_list(request, message):
     url = 'http://127.0.0.1:8000/api/tournaments/'
     response = requests.get(url)
     tournaments = response.json()
-    print(tournaments)
+    # print(tournaments)
+    # print(message)
+    if message != 'None':
+        print('Not none')
+        return render(request, 'tournaments/show_tournaments.html', {'tournaments': tournaments, 'msg': message})
+
     return render(request, 'tournaments/show_tournaments.html', {'tournaments': tournaments})
 
 
+def tournament_list_util(request):
+    return redirect('tournaments:tournament_list', message=None)
+
+
+@login_required
 def join_tournament(request, pk, t_name, start_date, end_date, location):
+    form = JoinTournament()
+    user_details_form = UserDetails(instance=request.user)
     if request.method == 'POST':
-        form = TournamentJoin(request.POST)
-        if form.is_valid():
+        form = JoinTournament(request.POST)
+        user_details_form = UserDetails(request.POST, instance=request.user)
+        if form.is_valid() and user_details_form.is_valid():
             url = 'http://127.0.0.1:8000/api/tournaments_join/'
             k = request.POST['pk']
-            name = form.cleaned_data['name']
-            email = form.cleaned_data['email']
+            if TournamentJoin.objects.filter(user=request.user, tournament=k).exists():
+                msg = 'You have already registered for this tournament'
+                return redirect('tournaments:tournament_list', message=msg)
+            name = user_details_form.cleaned_data['first_name']
+            email = user_details_form.cleaned_data['email']
+            phone_num = form.cleaned_data['phone_number']
+            data = json.dumps({'name': name, 'tournament': k, 'mail': email, 'phoneNumber': phone_num})
+            requests.post(url=url, data=data)
 
-            if form.cleaned_data['phone_number']:
-                phone_num = form.cleaned_data['phone_number']
-                data = json.dumps({'name': name, 'tournament': k, 'mail': email, 'phoneNumber': phone_num})
-                requests.post(url=url, data=data)
-
-            else:
-                data = json.dumps({'name': name, 'tournament': k, 'mail': email})
-                requests.post(url=url, data=data)
+            t = TournamentJoin(user=request.user, tournament=k)
+            t.save()
 
             current_site = get_current_site(request)
             mail_subject = 'SportsHub Tournament Registration Confirmation'
@@ -48,13 +100,13 @@ def join_tournament(request, pk, t_name, start_date, end_date, location):
                 mail_subject, message, to=[email]
             )
             email.send()
-            return redirect('tournaments:tournament_list')
+            return redirect('tournaments:tournament_list', message=None)
 
         else:
             print('form is invalid')
             print(form.errors)
-    else:
-        form = TournamentJoin()
 
     print(int(pk))
-    return render(request, 'tournaments/join_tournament.html', {'form': form, 'pk': int(pk)})
+
+    return render(request, 'tournaments/join_tournament.html', {'form': form, 'pk': int(pk),
+                                                                'user_details_form': user_details_form})
