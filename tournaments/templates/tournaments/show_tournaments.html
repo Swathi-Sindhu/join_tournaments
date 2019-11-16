@@ -10,7 +10,8 @@
 
         {% if msg %}
             <script>
-                alert('You have already registered for this tournament');
+                var message = "{{ msg }}";
+                alert(message);
             </script>
         {% endif %}
 
