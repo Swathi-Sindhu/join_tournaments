@@ -100,7 +100,7 @@ def join_tournament(request, pk, t_name, start_date, end_date, location):
                 mail_subject, message, to=[email]
             )
             email.send()
-            return redirect('tournaments:tournament_list', message=None)
+            return redirect('tournaments:tournament_list', message="You have successfully joined the tournament")
 
         else:
             print('form is invalid')
