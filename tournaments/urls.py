@@ -10,5 +10,7 @@ urlpatterns = [
          views.join_tournament, name='join_tournament'),
     path('login/', views.login_page, name='login'),
     path('register_user/', views.register_user, name='register_user'),
-    path('logout/', views.logout_user, name='logout_user')
+    path('logout/', views.logout_user, name='logout_user'),
+    path('user_tournament/', views.user_tournament, name='user_tournament'),
+    path('leave_tournament/<int:pk>', views.leave_tournament, name='leave_tournament'),
 ]
