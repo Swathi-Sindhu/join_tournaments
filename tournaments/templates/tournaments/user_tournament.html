@@ -1,0 +1,28 @@
+{% extends "tournaments/base.html" %}
+{% load custom_filters %}
+{% load widget_tweaks %}
+{% load static %}
+
+
+{% block content %}
+    <div class="container">
+        <h1 style="text-align: center;color: white">Joined Tournaments</h1><br>
+
+
+    <div class="row" >
+        {% for tournament in tournaments %}
+          <div class="column" style="padding:15px;">
+            <div class="card" style="border-radius: 10px;">
+            <div class="card-body">
+              <h3 class="card-title">{{ tournament.tournament_name }}</h3>
+              <p class="card-text">Location : <b>{{ tournament.location }}</b></p>
+              <p class="card-text">Schedule : <b>{{ tournament.start_date | filter_date }}</b> to <b>{{ tournament.end_date | filter_date }}</b></p>
+                <h4><a href="{% url 'tournaments:leave_tournament' tournament.tournament  %}" class="card-link">Leave tournament</a></h4>
+            </div>
+          </div>
+            </div>
+        {% endfor %}
+    </div>
+    </div>
+
+{% endblock %}

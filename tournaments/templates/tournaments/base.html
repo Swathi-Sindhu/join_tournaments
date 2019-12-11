@@ -161,6 +161,7 @@
         <ul class="nav navbar-nav" style="text-align:right">
             <li class="active"><a href="{% url 'tournaments:tournament_list_util' %}">Home</a></li>
             {% if request.user.is_authenticated %}
+                <li><a href="{% url 'tournaments:user_tournament' %}">Joined Tournaments</a></li>
                 <li><a href="{% url 'tournaments:logout_user' %}">Log Out</a></li>
             {% else %}
                 <li><a href="{% url 'tournaments:login' %}">Log In</a></li>

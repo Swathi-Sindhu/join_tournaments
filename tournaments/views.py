@@ -83,7 +83,8 @@ def join_tournament(request, pk, t_name, start_date, end_date, location):
             data = json.dumps({'name': name, 'tournament': k, 'mail': email, 'phoneNumber': phone_num})
             requests.post(url=url, data=data)
 
-            t = TournamentJoin(user=request.user, tournament=k)
+            t = TournamentJoin(user=request.user, name=name, email=email, tournament_name=t_name, start_date=start_date,
+                               end_date=end_date, location=location, tournament=k)
             t.save()
 
             current_site = get_current_site(request)
@@ -110,3 +111,24 @@ def join_tournament(request, pk, t_name, start_date, end_date, location):
 
     return render(request, 'tournaments/join_tournament.html', {'form': form, 'pk': int(pk),
                                                                 'user_details_form': user_details_form})
+
+
+@login_required
+def user_tournament(request):
+    tour_list = TournamentJoin.objects.filter(user=request.user)
+    return render(request, 'tournaments/user_tournament.html', {'tournaments': tour_list})
+
+
+@login_required
+def leave_tournament(request, pk):
+    if pk:
+        try:
+            instance = TournamentJoin.objects.get(user=request.user, tournament=pk)
+            url = 'http://127.0.0.1:8000/api/tournament_leave/'
+            data = json.dumps({'name': instance.name, 'tournament': pk})
+            requests.post(url=url, data=data)
+            instance.delete()
+        except:
+            pass
+
+        return redirect('tournaments:user_tournament')
