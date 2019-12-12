@@ -1,5 +1,4 @@
 import json
-
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
@@ -9,9 +8,10 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
 from django.urls import reverse
-
 from tournaments.forms import JoinTournament, UserDetails, RegisterForm
 from .models import TournamentJoin
+
+api_key = 'bBnRp8GofyQvRCiqMeR0OVvHRYNJjN'
 
 
 def login_page(request):
@@ -48,7 +48,7 @@ def register_user(request):
 
 
 def tournament_list(request, message):
-    url = 'http://127.0.0.1:8000/api/tournaments/'
+    url = 'http://127.0.0.1:8000/api/tournaments/?api_key=' + api_key
     response = requests.get(url)
     tournaments = response.json()
     # print(tournaments)
@@ -72,7 +72,7 @@ def join_tournament(request, pk, t_name, start_date, end_date, location):
         form = JoinTournament(request.POST)
         user_details_form = UserDetails(request.POST, instance=request.user)
         if form.is_valid() and user_details_form.is_valid():
-            url = 'http://127.0.0.1:8000/api/tournaments_join/'
+            url = 'http://127.0.0.1:8000/api/tournaments_join/?api_key=' + api_key
             k = request.POST['pk']
             if TournamentJoin.objects.filter(user=request.user, tournament=k).exists():
                 msg = 'You have already registered for this tournament'
