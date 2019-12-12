@@ -124,7 +124,7 @@ def leave_tournament(request, pk):
     if pk:
         try:
             instance = TournamentJoin.objects.get(user=request.user, tournament=pk)
-            url = 'http://127.0.0.1:8000/api/tournament_leave/'
+            url = 'http://127.0.0.1:8000/api/tournament_leave/?api_key=' + api_key
             data = json.dumps({'name': instance.name, 'tournament': pk})
             requests.post(url=url, data=data)
             instance.delete()
