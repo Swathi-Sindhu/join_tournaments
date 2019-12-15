@@ -11,7 +11,7 @@ from django.urls import reverse
 from tournaments.forms import JoinTournament, UserDetails, RegisterForm
 from .models import TournamentJoin
 
-api_key = 'bBnRp8GofyQvRCiqMeR0OVvHRYNJjN'
+api_key = '7RsyrHfEc1EjDbxById62jC0BHW7Ry'
 
 
 def login_page(request):
